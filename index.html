@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SyncLife</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1><i class="fas fa-chart-line"></i> SyncLife</h1>
+                <p class="subtitle">Build better habits, track your progress</p>
+            </div>
+            <div class="header-stats">
+                <div class="stat-card">
+                    <i class="fas fa-fire"></i>
+                    <div>
+                        <span class="stat-number" id="totalStreak">0</span>
+                        <span class="stat-label">Day Streak</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-trophy"></i>
+                    <div>
+                        <span class="stat-number" id="completedToday">0</span>
+                        <span class="stat-label">Completed Today</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-tab="dashboard">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </button>
+            <button class="nav-tab" data-tab="habits">
+                <i class="fas fa-list-check"></i> My Habits
+            </button>
+            <button class="nav-tab" data-tab="analytics">
+                <i class="fas fa-chart-bar"></i> Analytics
+            </button>
+            <button class="nav-tab" data-tab="calendar">
+                <i class="fas fa-calendar"></i> Calendar
+            </button>
+        </nav>
+
+        <!-- Dashboard Tab -->
+        <div class="tab-content active" id="dashboard">
+            <div class="dashboard-grid">
+                <div class="dashboard-card progress-overview">
+                    <h3><i class="fas fa-chart-pie"></i> Today's Progress</h3>
+                    <div class="progress-circle">
+                        <canvas id="todayProgressChart"></canvas>
+                        <div class="progress-text">
+                            <span class="progress-percentage" id="todayPercentage">0%</span>
+                            <span class="progress-label">Complete</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-card quick-actions">
+                    <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+                    <button class="action-btn primary" id="addHabitBtn">
+                        <i class="fas fa-plus"></i> Add New Habit
+                    </button>
+                    <button class="action-btn secondary" id="markAllBtn">
+                        <i class="fas fa-check-double"></i> Mark All Complete
+                    </button>
+                    <button class="action-btn tertiary" id="exportBtn">
+                        <i class="fas fa-download"></i> Export Data
+                    </button>
+                    <button class="action-btn quaternary" id="importBtn">
+                        <i class="fas fa-upload"></i> Import Data
+                    </button>
+                    <input type="file" id="importFile" accept=".json" style="display: none;">
+                </div>
+
+                <div class="dashboard-card recent-activity">
+                    <h3><i class="fas fa-history"></i> Recent Activity</h3>
+                    <div class="activity-list" id="activityList">
+                        <!-- Activity items will be populated by JS -->
+                    </div>
+                </div>
+
+                <div class="dashboard-card weekly-overview">
+                    <h3><i class="fas fa-calendar-week"></i> This Week</h3>
+                    <canvas id="weeklyChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Today's Habits Quick View -->
+            <div class="today-habits">
+                <h3><i class="fas fa-sun"></i> Today's Habits</h3>
+                <div class="habits-grid" id="todayHabitsGrid">
+                    <!-- Today's habits will be populated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Habits Tab -->
+        <div class="tab-content" id="habits">
+            <div class="habits-header">
+                <h2><i class="fas fa-list-check"></i> Manage Your Habits</h2>
+                <button class="btn-primary" id="addNewHabitBtn">
+                    <i class="fas fa-plus"></i> Add New Habit
+                </button>
+            </div>
+
+            <div class="habits-list" id="habitsList">
+                <!-- Habits will be populated by JS -->
+            </div>
+        </div>
+
+        <!-- Analytics Tab -->
+        <div class="tab-content" id="analytics">
+            <div class="analytics-grid">
+                <div class="chart-card">
+                    <h3><i class="fas fa-chart-bar"></i> Monthly Progress</h3>
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+                
+                <div class="chart-card">
+                    <h3><i class="fas fa-chart-pie"></i> Habit Distribution</h3>
+                    <canvas id="habitDistributionChart"></canvas>
+                </div>
+
+                <div class="chart-card">
+                    <h3><i class="fas fa-fire"></i> Streak Analysis</h3>
+                    <canvas id="streakChart"></canvas>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <i class="fas fa-trophy"></i>
+                        <div>
+                            <span class="stat-value" id="longestStreak">0</span>
+                            <span class="stat-title">Longest Streak</span>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-percentage"></i>
+                        <div>
+                            <span class="stat-value" id="overallCompletion">0%</span>
+                            <span class="stat-title">Overall Completion</span>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-calendar-check"></i>
+                        <div>
+                            <span class="stat-value" id="totalDays">0</span>
+                            <span class="stat-title">Days Tracked</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calendar Tab -->
+        <div class="tab-content" id="calendar">
+            <div class="calendar-header">
+                <button id="prevMonth"><i class="fas fa-chevron-left"></i></button>
+                <h2 id="currentMonth">December 2025</h2>
+                <button id="nextMonth"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <div class="calendar-grid" id="calendarGrid">
+                <!-- Calendar will be populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Adding/Editing Habits -->
+    <div class="modal" id="habitModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Add New Habit</h3>
+                <button class="close-btn" id="closeModal">&times;</button>
+            </div>
+            <form id="habitForm">
+                <div class="form-group">
+                    <label for="habitName">Habit Name *</label>
+                    <input type="text" id="habitName" required placeholder="e.g., Drink 8 glasses of water">
+                </div>
+                
+                <div class="form-group">
+                    <label for="habitDescription">Description</label>
+                    <textarea id="habitDescription" placeholder="Optional description..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="habitCategory">Category</label>
+                    <select id="habitCategory">
+                        <option value="health">🏃 Health & Fitness</option>
+                        <option value="productivity">📈 Productivity</option>
+                        <option value="learning">📚 Learning</option>
+                        <option value="mindfulness">🧘 Mindfulness</option>
+                        <option value="social">👥 Social</option>
+                        <option value="creativity">🎨 Creativity</option>
+                        <option value="other">📝 Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="habitFrequency">Frequency</label>
+                    <select id="habitFrequency">
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="custom">Custom Days</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="customDaysGroup" style="display: none;">
+                    <label>Select Days</label>
+                    <div class="days-selector">
+                        <label><input type="checkbox" value="0"> Sun</label>
+                        <label><input type="checkbox" value="1"> Mon</label>
+                        <label><input type="checkbox" value="2"> Tue</label>
+                        <label><input type="checkbox" value="3"> Wed</label>
+                        <label><input type="checkbox" value="4"> Thu</label>
+                        <label><input type="checkbox" value="5"> Fri</label>
+                        <label><input type="checkbox" value="6"> Sat</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="habitTarget">Target (optional)</label>
+                    <input type="number" id="habitTarget" min="1" placeholder="e.g., 8 for 8 glasses">
+                </div>
+
+                <div class="form-group">
+                    <label for="habitUnit">Unit (optional)</label>
+                    <input type="text" id="habitUnit" placeholder="e.g., glasses, pages, minutes">
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" id="cancelBtn">Cancel</button>
+                    <button type="submit" class="btn-primary" id="saveHabitBtn">Save Habit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <div class="toast-content">
+            <i class="fas fa-check-circle"></i>
+            <span id="toastMessage">Success!</span>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

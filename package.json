@@ -1,0 +1,14 @@
+{
+  "name": "habit-tracker-pro",
+  "version": "1.0.0",
+  "description": "MERN Stack Habit Tracker",
+  "scripts": {
+    "install-all": "npm install && cd server && npm install && cd ../client && npm install",
+    "start": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd server && npm start",
+    "client": "cd client && npm run dev"
+  },
+  "dependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

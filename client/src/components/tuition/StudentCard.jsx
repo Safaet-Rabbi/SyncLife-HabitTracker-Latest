@@ -1,11 +1,12 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { markAttendance, setSelectedStudentId } from '../../features/tuition/tuitionSlice';
+import { markAttendance, setSelectedStudentId, fetchStudents, fetchDashboardStats, deleteStudent, updateStudent } from '../../features/tuition/tuitionSlice';
 import { toast } from 'react-toastify';
-import { UserRound, GraduationCap, MapPin, CalendarDays, DollarSign, CheckCircle, XCircle, Pencil, Trash2, Calendar, UserPlus } from 'lucide-react';
+import { UserRound } from 'lucide-react'; // Keep for now as there's no direct Fa equivalent that fits the profile icon use case as well as this one
+import { FaEdit, FaTrash, FaCalendar, FaTag, FaDollarSign, FaGraduationCap, FaMapMarkerAlt, FaCheckCircle, FaUserPlus, FaCalendarAlt } from 'react-icons/fa';
 import { format, getDaysInMonth, isSameDay } from 'date-fns';
 
-const StudentCard = ({ student }) => {
+const StudentCard = ({ student, onOpenEditModal }) => {
   const dispatch = useDispatch();
   const { isLoading, selectedDate, selectedStudentId } = useSelector((state) => state.tuition);
 
@@ -24,6 +25,9 @@ const StudentCard = ({ student }) => {
     try {
       await dispatch(markAttendance({ studentId: student._id, date: today.toISOString(), status: newStatus })).unwrap();
       toast.success(`Attendance for ${student.name} marked ${newStatus ? 'Present' : 'Absent'} for today!`);
+      // After successfully marking attendance, re-fetch all students and dashboard stats
+      dispatch(fetchStudents());
+      dispatch(fetchDashboardStats());
     } catch (error) {
       toast.error(`Failed to mark attendance: ${error}`);
     }
@@ -33,82 +37,60 @@ const StudentCard = ({ student }) => {
     dispatch(setSelectedStudentId(student._id));
   };
 
-  // Calculate total days in current month for progress bar
-  const totalDaysInCurrentMonth = getDaysInMonth(new Date());
-  const monthlyAttendancePercentage = student.monthlyPresentDays > 0
-    ? ((student.monthlyPresentDays / totalDaysInCurrentMonth) * 100).toFixed(0)
-    : 0;
+  const handleDelete = async (e) => {
+    e.stopPropagation(); // Prevent card's onClick from firing
+    if (window.confirm(`Are you sure you want to delete ${student.name}?`)) {
+      try {
+        await dispatch(deleteStudent(student._id)).unwrap();
+        toast.success(`${student.name} deleted successfully!`);
+        // If the deleted student was the selected one, clear selection
+        if (selectedStudentId === student._id) {
+            dispatch(setSelectedStudentId(null));
+        }
+        dispatch(fetchDashboardStats()); // Update dashboard stats after deletion
+      } catch (error) {
+        toast.error(`Failed to delete student: ${error}`);
+      }
+    }
+  };
+
+  const handleEdit = (e) => {
+    e.stopPropagation(); // Prevent card's onClick from firing
+    dispatch(setSelectedStudentId(student._id));
+    onOpenEditModal();
+  };
 
   return (
     <div
-      className={`bg-white/95 dark:bg-gray-800 backdrop-blur-md rounded-2xl p-6 shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer relative ${
-        student._id === selectedStudentId
-          ? 'border-2 border-blue-600 dark:border-blue-400 shadow-xl' // Highlighted style
-          : 'border border-transparent' // Default style
-      }`}
+      className={`habit-item ${student._id === selectedStudentId ? 'is-selected' : ''}`}
+      style={{ borderLeftColor: '#667eea' }} // Default color, can be made dynamic later
       onClick={handleSelectStudent}
     >
-      {/* Edit/Delete Icons */}
-      <div className="absolute top-3 right-3 flex space-x-2">
-        <button className="text-gray-400 hover:text-blue-500 dark:hover:text-blue-400">
-          <Pencil size={18} />
+      {/* Edit/Delete Actions */}
+      <div className="habit-actions">
+        <button className="btn-small btn-edit" onClick={handleEdit}>
+          <FaEdit /> Edit
         </button>
-        <button className="text-gray-400 hover:text-red-500 dark:hover:text-red-400">
-          <Trash2 size={18} />
+        <button className="btn-small btn-delete" onClick={handleDelete}>
+          <FaTrash /> Delete
         </button>
       </div>
 
-      {/* Header - Name and Profile Icon */}
-      <div className="flex items-center mb-4">
-        <UserRound className="mr-3 text-blue-500 dark:text-blue-400" size={24} />
-        <h3 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-700 text-transparent bg-clip-text">
-          {student.name}
-        </h3>
-      </div>
-
-      {/* Details Body */}
-      <div className="space-y-2 text-gray-700 dark:text-gray-300 text-sm mb-4">
-        <p className="flex items-center">
-          <GraduationCap className="mr-2 text-gray-500 dark:text-gray-400" size={16} />
-          {student.className} ({student.subjectCount} Subjects)
-        </p>
-        <p className="flex items-center">
-          <MapPin className="mr-2 text-gray-500 dark:text-gray-400" size={16} />
-          {student.location}
-        </p>
-        {student.monthlyFee && (
-          <p className="flex items-center text-green-600 dark:text-green-400 font-semibold">
-            <DollarSign className="mr-2" size={16} />
-            ${student.monthlyFee}
-          </p>
-        )}
-        <p className="flex items-center">
-          <CalendarDays className="mr-2 text-gray-500 dark:text-gray-400" size={16} />
-          Joined: {joinedDateFormatted}
-        </p>
-      </div>
-
-      {/* Attendance Stats */}
-      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-        <div className="flex flex-col sm:flex-row sm:space-x-4 items-start sm:items-center text-sm text-gray-700 dark:text-gray-300 mb-2">
-          <p className="flex items-center flex-shrink-0 mb-1 sm:mb-0">
-            <CheckCircle className="mr-1 text-green-500" size={16} /> Total Present: <span className="font-bold ml-1">{student.totalPresentDays}</span>
-          </p>
-          <p className="flex items-center flex-shrink-0">
-            <Calendar className="mr-1 text-blue-500" size={16} />
-            <span className="whitespace-nowrap">This Month: <span className="font-bold ml-1">{student.monthlyPresentDays}</span></span>
-          </p>
+      <div className="habit-info">
+        <h4>{student.name}</h4>
+        <p>Class: {student.className} ({student.subjectCount} Subjects)</p>
+        <div className="habit-meta">
+          <span><FaMapMarkerAlt /> {student.location}</span>
+          {student.monthlyFee && (
+            <span><FaDollarSign /> ${student.monthlyFee}</span>
+          )}
+          <span><FaCalendarAlt /> Joined: {joinedDateFormatted}</span>
         </div>
-        {/* Monthly Attendance Progress Bar */}
-        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-          <div
-            className="bg-blue-500 h-2 rounded-full"
-            style={{ width: `${monthlyAttendancePercentage}%` }}
-          ></div>
+        <div className="habit-meta mt-2">
+            <span><FaCheckCircle /> Total Present: {student.totalPresentDays}</span>
+            <span><FaCalendar /> This Month: {student.monthlyPresentDays}</span>
         </div>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          {monthlyAttendancePercentage}% attendance this month
-        </p>
+
       </div>
 
       {/* Action Button */}
@@ -118,12 +100,12 @@ const StudentCard = ({ student }) => {
             e.stopPropagation(); // Prevent card's onClick from firing
             handleMarkToday();
           }}
-          className={`w-full py-3 rounded-lg text-white font-semibold transition-colors flex items-center justify-center ${
-            isPresent
-              ? 'bg-green-500 hover:bg-green-600'
-              : 'bg-blue-600 hover:bg-blue-700'
-          }`}
+          className="btn-primary" // Use btn-primary for overall styling
           disabled={isLoading}
+          style={{ 
+            backgroundColor: isPresent ? '#11998e' : '#667eea', // Green for present, blue for absent/mark
+            backgroundImage: isPresent ? 'linear-gradient(135deg, #11998e, #38ef7d)' : 'linear-gradient(135deg, #667eea, #764ba2)'
+          }}
         >
           {isLoading ? (
             <svg className="animate-spin h-5 w-5 text-white mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -132,11 +114,11 @@ const StudentCard = ({ student }) => {
             </svg>
           ) : isPresent ? (
             <>
-              <CheckCircle className="mr-2" size={20} /> Present Today
+              <FaCheckCircle className="mr-2" /> Present Today
             </>
           ) : (
             <>
-              <UserPlus className="mr-2" size={20} /> Mark Present Today
+              <FaUserPlus className="mr-2" /> Mark Present Today
             </>
           )}
         </button>

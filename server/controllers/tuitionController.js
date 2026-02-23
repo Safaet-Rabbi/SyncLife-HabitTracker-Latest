@@ -103,6 +103,48 @@ exports.markAttendance = async (req, res) => {
   }
 };
 
+// @desc    Delete a student
+// @route   DELETE /api/tuition/delete-student/:id
+// @access  Private
+exports.deleteStudent = async (req, res) => {
+  try {
+    const student = await Student.findByIdAndDelete(req.params.id);
+
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found.' });
+    }
+
+    res.status(200).json({ message: 'Student deleted successfully', studentId: req.params.id });
+  } catch (error) {
+    console.error('Error deleting student:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// @desc    Update a student
+// @route   PUT /api/tuition/update-student/:id
+// @access  Private
+exports.updateStudent = async (req, res) => {
+  try {
+    const { name, className, subjectCount, location, monthlyFee, joinedDate } = req.body;
+
+    const student = await Student.findByIdAndUpdate(
+      req.params.id,
+      { name, className, subjectCount, location, monthlyFee, joinedDate },
+      { new: true, runValidators: true } // Return the updated document and run schema validators
+    );
+
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found.' });
+    }
+
+    res.status(200).json({ message: 'Student updated successfully', student });
+  } catch (error) {
+    console.error('Error updating student:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
 // @desc    Calculate Total Students, Total Teaching Days this month
 // @route   GET /api/tuition/dashboard-stats
 // @access  Private

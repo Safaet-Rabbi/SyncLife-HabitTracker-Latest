@@ -76,10 +76,14 @@ function App() {
   const handleSaveHabit = async (habitData) => {
     try {
       if (editingHabit) {
+        console.log('Attempting to update habit:', editingHabit._id, habitData);
         await api.updateHabit(editingHabit._id, habitData);
+        console.log('Habit updated successfully. Triggering toast.');
         toast.success('Habit updated successfully!');
       } else {
+        console.log('Attempting to create new habit:', habitData);
         await api.createHabit(habitData);
+        console.log('Habit created successfully. Triggering toast.');
         toast.success('Habit created successfully!');
       }
       fetchData();

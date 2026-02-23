@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { format } from 'date-fns';
 
 const CalendarView = ({ habits, completions }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -21,15 +22,14 @@ const CalendarView = ({ habits, completions }) => {
     };
 
     const getDayData = (day) => {
-        const dStr = new Date(year, month, day).toISOString().split('T')[0];
-        // Calculate completion percentage for this day
-        // Find habits active on this day (simplified: all active habits)
-        // Check completions
-        
-        // Simplified: percentage of ALL habits completed
+        // Create a local Date object for the current calendar day
+        const calendarLocalDay = new Date(year, month, day);
+        // Format this local Date object into a 'YYYY-MM-DD' string
+        const formattedCalendarDay = format(calendarLocalDay, 'yyyy-MM-dd');
+
         if (habits.length === 0) return 0;
 
-        const dayOfWeek = new Date(year, month, day).getDay();
+        const dayOfWeek = calendarLocalDay.getDay(); // Use calendarLocalDay instead of creating new Date
         const activeHabits = habits.filter(h => {
              if (h.frequency === 'daily') return true;
              if (h.frequency === 'weekly') return dayOfWeek === 1;
@@ -39,8 +39,19 @@ const CalendarView = ({ habits, completions }) => {
 
         if (activeHabits.length === 0) return 0;
 
-        const completedCount = activeHabits.filter(h => 
-            completions.some(c => c.habitId === h._id && c.date === dStr && c.completed)
+        const completedCount = activeHabits.filter(h =>
+            completions.some(c => {
+                // Safely handle potentially invalid c.date
+                let formattedCompletionDay = null;
+                if (c.date) { // Check if c.date exists
+                    const completionDateObject = new Date(c.date);
+                    // Check if the date object is valid before formatting
+                    if (!isNaN(completionDateObject.getTime())) {
+                        formattedCompletionDay = format(completionDateObject, 'yyyy-MM-dd');
+                    }
+                }
+                return c.habitId === h._id && formattedCompletionDay === formattedCalendarDay && c.completed;
+            })
         ).length;
 
         return (completedCount / activeHabits.length) * 100;
@@ -56,7 +67,9 @@ const CalendarView = ({ habits, completions }) => {
         // Days of month
         for (let i = 1; i <= daysInMonth; i++) {
             const percentage = getDayData(i);
-            const isToday = new Date().toDateString() === new Date(year, month, i).toDateString();
+            const todayFormatted = format(new Date(), 'yyyy-MM-dd');
+            const currentDayFormatted = format(new Date(year, month, i), 'yyyy-MM-dd');
+            const isToday = todayFormatted === currentDayFormatted;
             
             days.push(
                 <div key={i} className={`calendar-day ${isToday ? 'today' : ''} ${percentage > 0 ? 'has-progress' : ''}`}>

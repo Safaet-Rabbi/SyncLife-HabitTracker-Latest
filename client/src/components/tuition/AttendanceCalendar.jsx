@@ -19,8 +19,9 @@ const AttendanceCalendar = () => {
       toast.warn('Please select a student first to mark attendance.');
       return;
     }
-    dispatch(setSelectedDate(date.toISOString())); // Keep selected date in Redux
-    setModalDate(date.toISOString()); // Set date for modal
+    const localDateString = format(date, 'yyyy-MM-dd'); // Format to local YYYY-MM-DD
+    dispatch(setSelectedDate(localDateString)); // Keep selected date in Redux
+    setModalDate(localDateString); // Set date for modal
     setShowAttendanceModal(true); // Open modal
   };
 
@@ -35,9 +36,16 @@ const AttendanceCalendar = () => {
   // Function to determine tile content (attendance status)
   const tileContent = ({ date, view }) => {
     if (view === 'month' && selectedStudent) {
-      const attendanceRecord = selectedStudent.attendanceRecords.find(record =>
-        isSameDay(new Date(record.date), date)
-      );
+      // Normalize the calendar date to a local YYYY-MM-DD string
+      const calendarDateFormatted = format(date, 'yyyy-MM-dd');
+
+      const attendanceRecord = selectedStudent.attendanceRecords.find(record => {
+        // record.date is likely a UTC ISO string from the backend.
+        // Convert it to a Date object, then format it to a local YYYY-MM-DD string for comparison.
+        const recordDateObject = new Date(record.date);
+        const recordDateFormatted = format(recordDateObject, 'yyyy-MM-dd');
+        return recordDateFormatted === calendarDateFormatted;
+      });
 
       if (attendanceRecord) {
         return (
@@ -54,8 +62,12 @@ const AttendanceCalendar = () => {
 
   // Function to add custom class names to tiles
   const tileClassName = ({ date, view }) => {
-    if (view === 'month' && isSameDay(date, new Date(selectedDate))) {
-      return 'bg-blue-200 dark:bg-blue-700 !rounded-md'; // Highlight selected date
+    if (view === 'month') {
+      const calendarDateFormatted = format(date, 'yyyy-MM-dd');
+      // selectedDate is already a local 'yyyy-MM-dd' string from Redux
+      if (calendarDateFormatted === selectedDate) {
+        return 'bg-blue-200 dark:bg-blue-700 !rounded-md'; // Highlight selected date
+      }
     }
     return null;
   };

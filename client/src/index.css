@@ -1049,3 +1049,8 @@ form {
 .habit-card[data-category="other"] {
     border-left-color: #54a0ff;
 }
+
+.habit-item.is-selected {
+    border: 2px solid #667eea; /* A blue border to highlight */
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3); /* A subtle glow */
+}

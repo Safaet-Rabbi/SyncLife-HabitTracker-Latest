@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Habit Tracker Pro (MERN Stack) 📈
 
 A beautiful, feature-rich habit tracking web application rebuilt with the MERN Stack (MongoDB, Express, React, Node.js). Track your daily routines, visualize progress with interactive charts, and build better habits!
@@ -81,3 +82,6 @@ A beautiful, feature-rich habit tracking web application rebuilt with the MERN S
 ## 📝 License
 
 This project is open source. Feel free to use, modify, and distribute as needed.
+=======
+# SyncLife-HabitTracker-Latest
+>>>>>>> 68ff60e4811a66c45a61fe30701f6c85107e638e
